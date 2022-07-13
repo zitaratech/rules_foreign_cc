@@ -10,9 +10,10 @@ def get_make_env_vars(
         flags,
         user_vars,
         deps,
-        inputs):
+        inputs,
+        linkdeps):
     vars = _get_make_variables(workspace_name, tools, flags, user_vars)
-    deps_flags = _define_deps_flags(deps, inputs)
+    deps_flags = _define_deps_flags(deps, inputs, linkdeps)
 
     # For cross-compilation.
     if "RANLIB" not in vars.keys():
@@ -30,17 +31,34 @@ def get_make_env_vars(
     return " ".join(["{}=\"{}\""
         .format(key, _join_flags_list(workspace_name, vars[key])) for key in vars])
 
-def _define_deps_flags(deps, inputs):
+def _define_deps_flags(deps, inputs, linkdeps):
     # It is very important to keep the order for the linker => put them into list
     lib_dirs = []
+    libs = []
 
     # Here go libraries built with Bazel
     gen_dirs_set = {}
+    lib_set = {}
     for lib in inputs.libs:
         dir_ = lib.dirname
         if not gen_dirs_set.get(dir_):
             gen_dirs_set[dir_] = 1
             lib_dirs.append("-L$$EXT_BUILD_ROOT$$/" + dir_)
+
+    if linkdeps:
+        # We must de-duplicate the libraries in reverse order to preserve the linking order
+        # libs will be reversed after de-duplication to return it to the original order
+        for lib in reversed(inputs.libs):
+            libname = lib.basename
+            ext = lib.extension
+            if ext:
+                libname = libname[:-1-len(ext)]
+            if libname.startswith('lib'):
+                libname = libname[3:]
+            libname = "-l" + libname
+            if not lib_set.get(libname):
+                lib_set[libname] = 1
+                libs.append(libname)
 
     include_dirs_set = {}
     for include_dir in inputs.include_dirs:
@@ -70,7 +88,7 @@ def _define_deps_flags(deps, inputs):
                     lib_dirs.append("-L$$EXT_BUILD_DEPS$$/{}/{}".format(dir_name, artifact.lib_dir_name))
 
     return struct(
-        libs = lib_dirs,
+        libs = lib_dirs+reversed(libs),
         flags = include_dirs,
     )
 

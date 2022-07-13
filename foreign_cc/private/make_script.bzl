@@ -11,7 +11,8 @@ def create_make_script(
         env_vars,
         deps,
         inputs,
-        make_commands):
+        make_commands,
+        linkdeps):
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
@@ -19,7 +20,7 @@ def create_make_script(
     script.append("##symlink_contents_to_dir## $$EXT_BUILD_ROOT$$/{} $$BUILD_TMPDIR$$".format(root))
 
     script.append("##enable_tracing##")
-    configure_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs)
+    configure_vars = get_make_env_vars(workspace_name, tools, flags, env_vars, deps, inputs, linkdeps)
     script.extend(["{env_vars} {command}".format(
         env_vars = configure_vars,
         command = command,

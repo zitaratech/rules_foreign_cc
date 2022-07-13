@@ -75,6 +75,7 @@ def _create_make_script(configureParameters):
         inputs = inputs,
         env_vars = user_env,
         make_commands = make_commands,
+        linkdeps = attrs.linkdeps,
     )
 
 def _attrs():

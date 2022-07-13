@@ -138,6 +138,11 @@ CC_EXTERNAL_RULE_ATTRIBUTES = {
         mandatory = False,
         default = [],
     ),
+    "linkdeps" : attr.bool (
+        doc = "Whether to pass the flags to link dependent libraries",
+        mandatory = False,
+        default = False,
+    ),
     "out_bin_dir": attr.string(
         doc = "Optional name of the output subdirectory with the binary files, defaults to 'bin'.",
         mandatory = False,
