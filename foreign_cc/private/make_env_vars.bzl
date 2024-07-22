@@ -49,13 +49,7 @@ def _define_deps_flags(deps, inputs, linkdeps):
         # We must de-duplicate the libraries in reverse order to preserve the linking order
         # libs will be reversed after de-duplication to return it to the original order
         for lib in reversed(inputs.libs):
-            libname = lib.basename
-            ext = lib.extension
-            if ext:
-                libname = libname[:-1-len(ext)]
-            if libname.startswith('lib'):
-                libname = libname[3:]
-            libname = "-l" + libname
+            libname = "$$EXT_BUILD_ROOT$$/" + lib.path
             if not lib_set.get(libname):
                 lib_set[libname] = 1
                 libs.append(libname)
